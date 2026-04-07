@@ -208,21 +208,27 @@ with tab1:
 
     # Calculate metrics
     df = st.session_state.df
-    num_open_tickets = len(df[df.Status == "Open"])
-    num_in_progress_tickets = len(df[df.Status == "In Progress"])
-    num_closed_tickets = len(df[df.Status == "Closed"])
+    num_open_tickets = len(df[df.Status == "Open"]) if not df.empty else 0
+    num_in_progress_tickets = (
+        len(df[df.Status == "In Progress"]) if not df.empty else 0
+    )
+    num_closed_tickets = len(df[df.Status == "Closed"]) if not df.empty else 0
 
     # Calculate average resolution time
-    resolved_df = df[df["Resolution Date"].notna()].copy()
-    if not resolved_df.empty:
-        resolved_df["Resolution Date"] = pd.to_datetime(resolved_df["Resolution Date"])
-        resolved_df["Date Submitted"] = pd.to_datetime(resolved_df["Date Submitted"])
-        resolved_df["Resolution Time"] = (
-            resolved_df["Resolution Date"] - resolved_df["Date Submitted"]
-        ).dt.days
-        avg_res_time = resolved_df["Resolution Time"].mean()
-    else:
-        avg_res_time = 0
+    avg_res_time = 0
+    if not df.empty and "Resolution Date" in df.columns:
+        resolved_df = df[df["Resolution Date"].notna()].copy()
+        if not resolved_df.empty:
+            resolved_df["Resolution Date"] = pd.to_datetime(
+                resolved_df["Resolution Date"]
+            )
+            resolved_df["Date Submitted"] = pd.to_datetime(
+                resolved_df["Date Submitted"]
+            )
+            resolved_df["Resolution Time"] = (
+                resolved_df["Resolution Date"] - resolved_df["Date Submitted"]
+            ).dt.days
+            avg_res_time = resolved_df["Resolution Time"].mean()
 
     # Show metrics side by side using `st.columns` and `st.metric`.
     col1, col2, col3 = st.columns(3)
