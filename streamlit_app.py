@@ -1,10 +1,31 @@
 import datetime
+import os
 import random
 
 import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+# Data file for persistence
+DATA_FILE = "tickets.csv"
+
+
+def load_data():
+    """Load existing tickets from CSV, or return None if file doesn't exist."""
+    if os.path.exists(DATA_FILE):
+        df = pd.read_csv(DATA_FILE)
+        # Ensure proper data types
+        df["Date Submitted"] = pd.to_datetime(df["Date Submitted"]).dt.date
+        df["Resolution Date"] = pd.to_datetime(df["Resolution Date"]).dt.date
+        return df
+    return None
+
+
+def save_data(df):
+    """Save the current tickets dataframe to a CSV file."""
+    df.to_csv(DATA_FILE, index=False)
+
 
 # Show app title and description.
 st.set_page_config(page_title="Support tickets", page_icon="🎫", layout="wide")
@@ -16,11 +37,16 @@ st.write(
     """
 )
 
-# Create a random Pandas dataframe with existing tickets.
+# Create or load the Pandas dataframe with tickets.
 if "df" not in st.session_state:
+    df = load_data()
 
-    # Set seed for reproducibility.
-    np.random.seed(42)
+    if df is not None:
+        st.session_state.df = df
+    else:
+        # Generate some mock data if no persistent data exists
+        # Set seed for reproducibility.
+        np.random.seed(42)
 
     # Make up some fake issue descriptions.
     issue_descriptions = [
@@ -67,9 +93,9 @@ if "df" not in st.session_state:
                 days=random.randint(1, 10)
             )
 
-    # Save the dataframe in session state (a dictionary-like object that persists across
-    # page runs). This ensures our data is persisted when the app updates.
-    st.session_state.df = df
+        # Save the dataframe in session state and persist it
+        st.session_state.df = df
+        save_data(df)
 
 
 # Organize into tabs for a cleaner interface
@@ -137,6 +163,7 @@ with tab3:
             st.session_state.df = pd.concat(
                 [df_new, st.session_state.df], axis=0
             ).reset_index(drop=True)
+            save_data(st.session_state.df)
 
 with tab2:
     # Show section to view and edit existing tickets in a table.
@@ -159,6 +186,7 @@ with tab2:
                     "Resolution Date",
                 ]
             )
+            save_data(st.session_state.df)
             st.rerun()
 
     st.info(
@@ -170,7 +198,7 @@ with tab2:
 
     # Show the tickets dataframe with `st.data_editor`. This lets the user edit the table
     # cells. The edited data is returned as a new dataframe.
-    st.session_state.df = st.data_editor(
+    edited_df = st.data_editor(
         st.session_state.df,
         use_container_width=True,
         hide_index=True,
@@ -201,6 +229,12 @@ with tab2:
         # Disable editing the ID and Date Submitted columns.
         disabled=["ID", "Date Submitted"],
     )
+
+    # Check for changes in the data editor and save to disk if needed
+    if not edited_df.equals(st.session_state.df):
+        st.session_state.df = edited_df
+        save_data(edited_df)
+        st.rerun()
 
 with tab1:
     # Show some metrics and charts about the ticket.
