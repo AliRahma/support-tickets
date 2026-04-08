@@ -165,8 +165,10 @@ with tab2:
     st.info(
         "You can edit the tickets by double clicking on a cell. You can also delete rows "
         "by selecting them and pressing the 'Delete' key on your keyboard, or using the "
-        "trash icon on the right. **Your changes are saved automatically, but you can "
-        "also use the 'Save Changes' button below.**",
+        "trash icon on the right. \n\n"
+        "**Note:** Press 'Enter' or click outside the table to commit your edits. "
+        "Your changes are saved automatically, but you can also use the 'Save Changes' "
+        "button below.",
         icon="✍️",
     )
 
@@ -204,14 +206,26 @@ with tab2:
         disabled=["ID", "Date Submitted"],
     )
 
-    # Add a save button for explicit saving
-    if st.button("💾 Save Changes", help="Save edits to the persistent database"):
-        st.session_state.df = edited_df
-        save_data(edited_df)
-        st.success("Changes saved successfully!")
-        st.rerun()
+    # Save and Download section
+    col_save1, col_save2 = st.columns([1, 4])
+    with col_save1:
+        # Explicit save button
+        if st.button("💾 Save Changes", help="Save edits to the persistent database"):
+            st.session_state.df = edited_df
+            save_data(edited_df)
+            st.success("Changes saved to tickets.csv!")
+    with col_save2:
+        # Provide a download button for the CSV file
+        csv = edited_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="📥 Download as CSV (Excel)",
+            data=csv,
+            file_name="tickets.csv",
+            mime="text/csv",
+            help="Download the current table as a CSV file compatible with Excel",
+        )
 
-    # Automatically save if changes are detected and session state hasn't been updated yet
+    # Automatically update session state if changes are detected
     if not edited_df.equals(st.session_state.df):
         st.session_state.df = edited_df
         save_data(edited_df)
