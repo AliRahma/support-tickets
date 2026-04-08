@@ -44,58 +44,17 @@ if "df" not in st.session_state:
     if df is not None:
         st.session_state.df = df
     else:
-        # Generate some mock data if no persistent data exists
-        # Set seed for reproducibility.
-        np.random.seed(42)
-
-    # Make up some fake issue descriptions.
-    issue_descriptions = [
-        "Network connectivity issues in the office",
-        "Software application crashing on startup",
-        "Printer not responding to print commands",
-        "Email server downtime",
-        "Data backup failure",
-        "Login authentication problems",
-        "Website performance degradation",
-        "Security vulnerability identified",
-        "Hardware malfunction in the server room",
-        "Employee unable to access shared files",
-        "Database connection failure",
-        "Mobile application not syncing data",
-        "VoIP phone system issues",
-        "VPN connection problems for remote employees",
-        "System updates causing compatibility issues",
-        "File server running out of storage space",
-        "Intrusion detection system alerts",
-        "Inventory management system errors",
-        "Customer data not loading in CRM",
-        "Collaboration tool not sending notifications",
-    ]
-
-    # Generate the dataframe with 100 rows/tickets.
-    data = {
-        "ID": [f"TICKET-{i}" for i in range(1100, 1000, -1)],
-        "Issue": np.random.choice(issue_descriptions, size=100),
-        "Status": np.random.choice(["Open", "In Progress", "Closed"], size=100),
-        "Priority": np.random.choice(["High", "Medium", "Low"], size=100),
-        "Date Submitted": [
-            (datetime.date(2023, 6, 1) + datetime.timedelta(days=random.randint(0, 182)))
-            for _ in range(100)
-        ],
-    }
-    df = pd.DataFrame(data)
-    df["Resolution Date"] = pd.NA
-
-    # Randomly assign resolution dates to closed tickets
-    for i in range(len(df)):
-        if df.loc[i, "Status"] == "Closed":
-            df.loc[i, "Resolution Date"] = df.loc[i, "Date Submitted"] + datetime.timedelta(
-                days=random.randint(1, 10)
-            )
-
-        # Save the dataframe in session state and persist it
-        st.session_state.df = df
-        save_data(df)
+        # Initialize an empty dataframe with the required schema
+        st.session_state.df = pd.DataFrame(
+            columns=[
+                "ID",
+                "Issue",
+                "Status",
+                "Priority",
+                "Date Submitted",
+                "Resolution Date",
+            ]
+        )
 
 
 # Organize into tabs for a cleaner interface
