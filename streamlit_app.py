@@ -14,11 +14,25 @@ DATA_FILE = "tickets.csv"
 def load_data():
     """Load existing tickets from CSV, or return None if file doesn't exist."""
     if os.path.exists(DATA_FILE):
-        df = pd.read_csv(DATA_FILE)
-        # Ensure proper data types
-        df["Date Submitted"] = pd.to_datetime(df["Date Submitted"]).dt.date
-        df["Resolution Date"] = pd.to_datetime(df["Resolution Date"]).dt.date
-        return df
+        try:
+            df = pd.read_csv(DATA_FILE)
+            # Ensure proper data types
+            # Convert to datetime and then to date objects for Streamlit widgets
+            if "Date Submitted" in df.columns:
+                df["Date Submitted"] = (
+                    pd.to_datetime(df["Date Submitted"], errors="coerce").dt.date.replace(
+                        {pd.NA: None}
+                    )
+                )
+            if "Resolution Date" in df.columns:
+                df["Resolution Date"] = (
+                    pd.to_datetime(df["Resolution Date"], errors="coerce").dt.date.replace(
+                        {pd.NA: None}
+                    )
+                )
+            return df
+        except Exception:
+            return None
     return None
 
 
@@ -191,6 +205,8 @@ with tab2:
 
     # Check for changes in the data editor and save to disk if needed
     if not edited_df.equals(st.session_state.df):
+        # We need to ensure that when we compare, NaT and None/pd.NA are handled correctly
+        # st.data_editor can return different types for empty dates
         st.session_state.df = edited_df
         save_data(edited_df)
         st.rerun()
