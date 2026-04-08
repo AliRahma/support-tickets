@@ -141,7 +141,7 @@ with tab3:
             try:
                 save_data(st.session_state.df)
                 st.success("Ticket submitted and saved to Google Sheets.")
-                st.dataframe(df_new, use_container_width=True, hide_index=True)
+                st.dataframe(df_new, width='stretch', hide_index=True)
             except Exception as e:
                 st.error(f"Ticket created in session, but failed to save to Google Sheets: {e}")
 
@@ -172,7 +172,7 @@ with tab2:
 
     edited_df = st.data_editor(
         st.session_state.df,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         num_rows="dynamic",
         column_config={
@@ -275,7 +275,7 @@ with tab1:
                 .properties(height=300)
                 .configure_legend(orient="bottom")
             )
-            st.altair_chart(status_plot, use_container_width=True, theme="streamlit")
+            st.altair_chart(status_plot, width='stretch', theme="streamlit")
         else:
             st.info("No ticket data available.")
 
@@ -299,6 +299,6 @@ with tab1:
                 .properties(height=300)
                 .configure_legend(orient="bottom")
             )
-            st.altair_chart(priority_plot, use_container_width=True, theme="streamlit")
+            st.altair_chart(priority_plot, width='stretch', theme="streamlit")
         else:
             st.info("No ticket data available.")
