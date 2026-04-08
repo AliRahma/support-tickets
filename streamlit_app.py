@@ -165,7 +165,8 @@ with tab2:
     st.info(
         "You can edit the tickets by double clicking on a cell. You can also delete rows "
         "by selecting them and pressing the 'Delete' key on your keyboard, or using the "
-        "trash icon on the right.",
+        "trash icon on the right. **Your changes are saved automatically, but you can "
+        "also use the 'Save Changes' button below.**",
         icon="✍️",
     )
 
@@ -203,10 +204,15 @@ with tab2:
         disabled=["ID", "Date Submitted"],
     )
 
-    # Check for changes in the data editor and save to disk if needed
+    # Add a save button for explicit saving
+    if st.button("💾 Save Changes", help="Save edits to the persistent database"):
+        st.session_state.df = edited_df
+        save_data(edited_df)
+        st.success("Changes saved successfully!")
+        st.rerun()
+
+    # Automatically save if changes are detected and session state hasn't been updated yet
     if not edited_df.equals(st.session_state.df):
-        # We need to ensure that when we compare, NaT and None/pd.NA are handled correctly
-        # st.data_editor can return different types for empty dates
         st.session_state.df = edited_df
         save_data(edited_df)
         st.rerun()
